@@ -173,6 +173,11 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type,
 		}
 	}
 
+	// Pass through Command key events and all events with command key pressed
+	if (grabbed == 1 && ((CGEventGetFlags(event) & kCGEventFlagMaskCommand) || (code == 55 || code == 56))) {
+		return event;
+	}
+
 	/* Ensure mods are consistent across keydown/up events. */
 	if (pressed == 0) {
 		mods = keymods[code];
