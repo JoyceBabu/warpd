@@ -173,17 +173,23 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type,
 		}
 	}
 
-	// Pass through Command key events and all events with command key pressed
-	if (grabbed == 1 && ((CGEventGetFlags(event) & kCGEventFlagMaskCommand) || (code == 55 || code == 56))) {
-		return event;
-	}
-
 	/* Ensure mods are consistent across keydown/up events. */
 	if (pressed == 0) {
 		mods = keymods[code];
 	} else if (pressed == 1) {
 		mods = active_mods;
 		keymods[code] = mods;
+	}
+
+	// Pass through all events without alt pressed, or are not printable characters or escape.
+	if (grabbed == 1) {
+		UniChar chars[4];
+		UniCharCount length = 0;
+		CGEventKeyboardGetUnicodeString(event, 4, &length, chars);
+
+		if (PLATFORM_MOD_ALT != (mods & PLATFORM_MOD_ALT) && code != 53 && (length <= 0 || chars[0] >= 128 || !isprint((char)chars[0]))) {
+			return event;
+		}
 	}
 
 	struct input_event ev;
